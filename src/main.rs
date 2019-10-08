@@ -38,6 +38,7 @@ impl EventHandler for Handler {
 fn main() {
     // Find openssl certs
     openssl_probe::init_ssl_cert_env_vars();
+
     // Log in to Discord using a bot token from the environment
     let mut client = Client::new(&env::var("DISCORD_TOKEN").expect("Expected token"), Handler)
         .expect("Error creating client");
@@ -48,6 +49,9 @@ fn main() {
             .group(&GENERAL_GROUP)
             .group(&WANIKANI_GROUP),
     );
+
+    // Ensure all required files are created on launch
+    wkapi::ensure::ensure_all().expect("Failed to ensure required files");
 
     // start listening for events by starting a single shard
     if let Err(err) = client.start() {

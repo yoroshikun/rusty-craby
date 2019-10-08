@@ -1,43 +1,29 @@
-use serde::{Deserialize, Serialize};
 use serde_yaml;
 
 use std::fs::File;
-use std::fs::OpenOptions;
 
 use serenity::model::channel::Message;
 
+#[path = "structs.rs"]
+mod structs;
 #[path = "user.rs"]
 mod user;
 
-use user::get_user;
+use structs::{ApiTokens, ApiTokensFile};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ApiTokens {
-  pub tokens: Vec<UserTokens>,
-}
+// Search the tokens file to get the token of the item with the same id
+pub fn get_api_token(id: &str) -> Result<Option<String>, serde_yaml::Error> {
+  let f = File::open("wkdata/api_tokens.yaml").unwrap();
+  let api_tokens: ApiTokensFile = serde_yaml::from_reader(f)?;
+  let user_token = match api_tokens.tokens {
+    Some(api_tokens) => api_tokens.into_iter().find(|r| r.id == id),
+    None => None,
+  };
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UserTokens {
-  pub id: String,
-  pub token: String,
-}
-
-pub fn get_api_token(id: String) -> Result<String, serde_yaml::Error> {
-  let api_tokens: ApiTokens = serde_yaml::from_reader(
-    OpenOptions::new()
-      .write(true)
-      .read(true)
-      .create(true)
-      .open("wkdata/api_tokens.yaml")
-      .expect("Failed to open File"),
-  )?;
-  let user = api_tokens
-    .tokens
-    .iter()
-    .find(|&r| r.id == id)
-    .expect("Could not find user");
-
-  Ok(user.token.to_owned())
+  match user_token {
+    Some(user_token) => Ok(Some(user_token.token.to_string())),
+    None => Ok(None),
+  }
 }
 
 pub fn add_api_token(msg: &Message) -> Result<String, serde_yaml::Error> {
@@ -48,39 +34,46 @@ pub fn add_api_token(msg: &Message) -> Result<String, serde_yaml::Error> {
   let response = match content_chunks.len() {
     2 => {
       let api_token = content_chunks[1];
+
       // Ensure apitoken is valid
-      let user = get_user(api_token.to_owned()).expect("User token was invalid");
+      let user = user::get_user(&api_token);
+
+      if user.is_err() {
+        return Ok(format!("The Api Token given was invalid"));
+      };
+
       // Read old file
-      let api_tokens: ApiTokens = serde_yaml::from_reader(
-        OpenOptions::new()
-          .write(true)
-          .read(true)
-          .create(true)
-          .open("wkdata/api_tokens.yaml")
-          .expect("Failed to open File"),
-      )?;
+      let api_token_f = File::open("wkdata/api_tokens.yaml").unwrap();
+      let api_tokens: ApiTokensFile = serde_yaml::from_reader(&api_token_f)?;
+
       // New user tokens vec
-      let mut new_user_tokens: Vec<UserTokens> = api_tokens.tokens;
+      let mut new_user_tokens: Vec<ApiTokens> = match api_tokens.tokens {
+        Some(tokens) => tokens,
+        None => vec![],
+      };
+
       // Find and remove the current value if value already exists
       let removed = new_user_tokens
         .iter()
-        .position(|token| *token.token == api_token.to_owned())
+        .position(|token| *token.token == api_token.to_string())
         .map(|e| new_user_tokens.remove(e))
         .is_some();
       println!("Removed existing: {}", removed);
-      // Add to end of users
-      new_user_tokens.push(UserTokens {
-        id: user.data.id,
+
+      // Add to end of users (safe to unwrap user since we checked if err above)
+      new_user_tokens.push(ApiTokens {
+        id: user.unwrap().data.id,
         token: api_token.to_owned(),
       });
+
       // Write new yaml file
-      let new_api_tokens = ApiTokens {
-        tokens: new_user_tokens,
+      let new_api_tokens = ApiTokensFile {
+        tokens: Some(new_user_tokens),
       };
       let buffer = File::create("wkdata/api_tokens.yaml").expect("Failed to create file");
-      serde_yaml::to_writer(buffer, &new_api_tokens).expect("Failed to write yaml");
+      serde_yaml::to_writer(buffer, &new_api_tokens)?;
       // Send confirmation
-      format!("Successfully added new token: {}", api_token.to_owned())
+      format!("Successfully added new token: {}", api_token.to_string())
     }
     _ => "The input is invalid, Example: !add_wkapi <api_token>".to_owned(),
   };
