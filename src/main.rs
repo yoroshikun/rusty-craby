@@ -42,9 +42,18 @@ fn main() {
     // Find openssl certs
     openssl_probe::init_ssl_cert_env_vars();
 
+    // If debug mode use test token (fallback default discord token) / Panic if discord token is not a thing
+    let token = if cfg!(debug_assertions) {
+        match env::var("TEST_DISCORD_TOKEN") {
+            Ok(token) => token,
+            Err(_) => env::var("DISCORD_TOKEN").expect("Expected Token"),
+        }
+    } else {
+        env::var("DISCORD_TOKEN").expect("Expected Token")
+    };
+
     // Log in to Discord using a bot token from the environment
-    let mut client = Client::new(&env::var("DISCORD_TOKEN").expect("Expected token"), Handler)
-        .expect("Error creating client");
+    let mut client = Client::new(&token, Handler).expect("Error creating client");
 
     client.with_framework(
         StandardFramework::new()
