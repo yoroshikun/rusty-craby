@@ -64,7 +64,6 @@ pub fn handler(_msg: &Message) -> String {
             serde_yaml::to_writer(buffer, &new_level_file).expect("Failed to write yaml");
 
             // Loop though new users and return a string of joined username and levels
-            // TODO get good at ownership or borrowing to avoid this monstroicity
             let mut output_vec: Vec<String> = vec![];
             match new_level_file.users {
               Some(users) => {

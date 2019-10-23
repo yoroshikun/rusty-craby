@@ -9,14 +9,17 @@ use serenity::framework::standard::{
 use serenity::model::{channel::Message, gateway::Ready};
 use serenity::prelude::{Context, EventHandler};
 
+use serenity::utils::Colour;
+
 mod currency;
+mod jisho;
 mod wk_levels;
 mod wkapi;
 
 group!({
     name: "general",
     options: {},
-    commands: [ping, currency],
+    commands: [ping, currency, jisho],
 });
 
 group!({
@@ -87,6 +90,26 @@ fn levels(ctx: &mut Context, msg: &Message) -> CommandResult {
 fn add_wkapi(ctx: &mut Context, msg: &Message) -> CommandResult {
     let response = wkapi::api_tokens::add_api_token(msg).expect("Failed to add api_token");
     msg.channel_id.say(&ctx.http, response)?;
+
+    Ok(())
+}
+
+#[command]
+fn jisho(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let response = jisho::handler(msg);
+
+    match response {
+        Ok((description, url)) => msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|mut e| {
+                e.description(description);
+                e.url(url);
+                e.colour(Colour::from_rgb(0, 250, 154));
+
+                e
+            })
+        })?,
+        Err(err) => msg.channel_id.say(&ctx.http, err)?,
+    };
 
     Ok(())
 }
