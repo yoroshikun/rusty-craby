@@ -75,7 +75,7 @@ fn get_jisho(word: &str) -> Result<(String, String), reqwest::Error> {
   let description = match &jisho.data {
     Some(data) => {
       if data.len() == 0 {
-        "No Jisho Results".to_string()
+        "No Jisho Results".to_owned()
       } else {
         format!(
           "**English**: {} \n **Japanese**: {} \n **Reading**: {} \n ---------- \n More information: {}",
@@ -83,18 +83,18 @@ fn get_jisho(word: &str) -> Result<(String, String), reqwest::Error> {
           data[0].japanese[0]
             .word
             .as_ref()
-            .unwrap_or(&"No Kana".to_string()),
+            .unwrap_or(&"No Kana".to_owned()),
           data[0].japanese[0].reading,
           format!("https://jisho.org/word/{}", data[0].slug)
         )
       }
     }
-    None => "No Jisho Results".to_string(),
+    None => "No Jisho Results".to_owned(),
   };
 
   let url = match &jisho.data {
     Some(data) => format!("https://jisho.org/word/{}", data[0].slug),
-    None => "".to_string(),
+    None => "".to_owned(),
   };
 
   Ok((description, url))

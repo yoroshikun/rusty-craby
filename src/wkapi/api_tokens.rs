@@ -21,7 +21,7 @@ pub fn get_api_token(id: &str) -> Result<Option<String>, serde_yaml::Error> {
   };
 
   match user_token {
-    Some(user_token) => Ok(Some(user_token.token.to_string())),
+    Some(user_token) => Ok(Some(user_token.token.to_owned())),
     None => Ok(None),
   }
 }
@@ -55,7 +55,7 @@ pub fn add_api_token(msg: &Message) -> Result<String, serde_yaml::Error> {
       // Find and remove the current value if value already exists
       let removed = new_user_tokens
         .iter()
-        .position(|token| *token.token == api_token.to_string())
+        .position(|token| *token.token == api_token.to_owned())
         .map(|e| new_user_tokens.remove(e))
         .is_some();
       println!("Removed existing: {}", removed);
@@ -73,7 +73,7 @@ pub fn add_api_token(msg: &Message) -> Result<String, serde_yaml::Error> {
       let buffer = File::create("wkdata/api_tokens.yaml").expect("Failed to create file");
       serde_yaml::to_writer(buffer, &new_api_tokens)?;
       // Send confirmation
-      format!("Successfully added new token: {}", api_token.to_string())
+      format!("Successfully added new token: {}", api_token.to_owned())
     }
     _ => "The input is invalid, Example: !add_wkapi <api_token>".to_owned(),
   };

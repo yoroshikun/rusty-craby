@@ -93,7 +93,15 @@ fn currency(ctx: &mut Context, msg: &Message) -> CommandResult {
                 e
             })
         })?,
-        Err(err) => msg.channel_id.say(&ctx.http, err)?,
+        Err(err) => msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|mut e| {
+                e.title("Exchange Rate");
+                e.description(err);
+                e.colour(Colour::from_rgb(255, 23, 68));
+
+                e
+            })
+        })?,
     };
 
     Ok(())

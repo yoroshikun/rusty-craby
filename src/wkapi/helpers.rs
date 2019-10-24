@@ -39,7 +39,7 @@ pub fn ensure_equal_ids_levels() -> Result<(), std::io::Error> {
           let mut new_levels = vec![];
           for id in tokens {
             new_levels.push(UserLevels {
-              username: "".to_string(),
+              username: "".to_owned(),
               id: id.id,
               level: 0,
             });
@@ -58,7 +58,7 @@ pub fn ensure_equal_ids_levels() -> Result<(), std::io::Error> {
           let mut new_levels = vec![];
           for id in tokens {
             new_levels.push(UserLevels {
-              username: "".to_string(),
+              username: "".to_owned(),
               id: id.id,
               level: 0,
             });
