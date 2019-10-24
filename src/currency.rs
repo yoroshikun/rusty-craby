@@ -34,15 +34,17 @@ fn get_current_exchange(base: &str, to: &str) -> Result<String, reqwest::Error> 
   }
   // Convert the requested rate to a string
   let rate = format!(
-    "{base} into {to} is: {rate}{to}",
+    "{base} --> {to}: **{rate:.4}**",
     base = base,
     to = to,
-    rate = rates.rates[to].to_string()
+    rate = rates.rates[to]
+      .as_f64()
+      .expect("Could not parse rate into float")
   );
   Ok(rate)
 }
 
-pub fn handler(msg: &Message) -> String {
+pub fn handler(msg: &Message) -> Result<String, String> {
   // Split command by spaces
   let content_chunks: Vec<&str> = msg.content.split(" ").collect();
   // Simple check to ensure two arguments were given
@@ -52,14 +54,14 @@ pub fn handler(msg: &Message) -> String {
       let to = content_chunks[2];
       // Ensure the from and to are valid
       if CURRENCY_CODES.contains(&base) && CURRENCY_CODES.contains(&to) {
-        get_current_exchange(base, to).unwrap()
+        Ok(get_current_exchange(base, to).unwrap())
       } else {
-        "The input is invalid, Example: !currency AUD JPY".to_owned()
+        Err("Invalid input, Example: !currency AUD JPY".to_owned())
       }
     }
-    2 => "The input is invalid, Example: !currency AUD JPY".to_owned(),
-    1 => get_current_exchange("AUD", "JPY").unwrap(),
-    _ => "The input is invalid, Example: !currency AUD JPY".to_owned(),
+    2 => Err("Invalid input, Example: !currency AUD JPY".to_owned()),
+    1 => Ok(get_current_exchange("AUD", "JPY").unwrap()),
+    _ => Err("Invalid input, Example: !currency AUD JPY".to_owned()),
   };
   response
 }

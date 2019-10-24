@@ -82,7 +82,19 @@ fn ping(ctx: &mut Context, msg: &Message) -> CommandResult {
 #[aliases("xe")]
 fn currency(ctx: &mut Context, msg: &Message) -> CommandResult {
     let response = currency::handler(msg);
-    msg.channel_id.say(&ctx.http, response)?;
+
+    match response {
+        Ok(response) => msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|mut e| {
+                e.title("Exchange Rate");
+                e.description(response);
+                e.colour(Colour::from_rgb(253, 216, 53));
+
+                e
+            })
+        })?,
+        Err(err) => msg.channel_id.say(&ctx.http, err)?,
+    };
 
     Ok(())
 }
@@ -104,6 +116,7 @@ fn add_wkapi(ctx: &mut Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
+#[aliases("J", "j")]
 fn jisho(ctx: &mut Context, msg: &Message) -> CommandResult {
     let response = jisho::handler(msg);
 
