@@ -13,12 +13,12 @@ struct Exchange {
   date: String,
 }
 
-static CURRENCY_CODES: [&str; 62] = [
-  "USD", "JPY", "BGN", "CZK", "DKK", "GBP", "HUF", "PLN", "RON", "SEK", "CHF", "ISK", "NOK", "RUB",
-  "TRY", "AUD", "BRL", "CAD", "CNY", "HKD", "IDR", "ILS", "INR", "KRW", "MXN", "MYR", "NZD", "PHP",
-  "SGD", "THB", "ZAR", "usd", "jpy", "bgn", "czk", "dkk", "gbp", "huf", "pln", "ron", "sek", "chf",
-  "isk", "nok", "rub", "try", "aud", "brl", "cad", "cny", "hkd", "idr", "ils", "inr", "krw", "mxn",
-  "myr", "nzd", "php", "sgd", "thb", "zar",
+static CURRENCY_CODES: [&str; 64] = [
+  "USD", "EUR", "JPY", "BGN", "CZK", "DKK", "GBP", "HUF", "PLN", "RON", "SEK", "CHF", "ISK", "NOK",
+  "RUB", "TRY", "AUD", "BRL", "CAD", "CNY", "HKD", "IDR", "ILS", "INR", "KRW", "MXN", "MYR", "NZD",
+  "PHP", "SGD", "THB", "ZAR", "usd", "eur", "jpy", "bgn", "czk", "dkk", "gbp", "huf", "pln", "ron",
+  "sek", "chf", "isk", "nok", "rub", "try", "aud", "brl", "cad", "cny", "hkd", "idr", "ils", "inr",
+  "krw", "mxn", "myr", "nzd", "php", "sgd", "thb", "zar",
 ];
 
 // Get Current Currencty
