@@ -63,7 +63,8 @@ fn main() {
     );
 
     // Ensure all required files are created on launch
-    wkapi::ensure::ensure_all().expect("Failed to ensure required files");
+    wkapi::ensure::ensure_all().expect("Failed to ensure required files: WKApi");
+    currency::ensure::ensure_all().expect("Failed to ensure required files: Currency");
 
     // start listening for events by starting a single shard
     if let Err(err) = client.start() {
@@ -81,7 +82,7 @@ fn ping(ctx: &mut Context, msg: &Message) -> CommandResult {
 #[command]
 #[aliases("xe")]
 fn currency(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let response = currency::handler(msg);
+    let response = currency::currency::handler(msg);
 
     match response {
         Ok(response) => msg.channel_id.send_message(&ctx.http, |m| {
