@@ -86,37 +86,40 @@ pub fn handler(msg: &Message) -> Result<String, String> {
       let param1 = content_chunks[1];
       let param2 = content_chunks[2];
 
-      if param1 == param2 {
-        return Err("Invalid Input, <base> and <to> currencies cannot be the same".to_owned());
-      };
-
-      // Ensure the from and to are valid
-      if CURRENCY_CODES.contains(&param1) && CURRENCY_CODES.contains(&param2) {
-        let base = param1.to_ascii_uppercase();
-        let to = param2.to_ascii_uppercase();
-        let rate = get_current_exchange(&base, &to).unwrap();
-        let response = format!(
-          "{base} --> {to}: **{rate:.4}**",
-          base = &base,
-          to = &to,
-          rate = rate
-        );
-        Ok(response)
-      } else {
-        // Secondary check if param1 is keyword "default"
-        match param1 {
-          "default" => {
-            if CURRENCY_CODES.contains(&param2) {
-              let set_default = helpers::set_default(param2, msg.author.id.as_u64());
-              match set_default {
-                Ok(response) => Ok(response),
-                Err(err) => Err(err),
-              }
-            } else {
-              Err("Invalid input, Example !currency default USD".to_owned())
+      match param1.to_ascii_lowercase().contains("default") {
+        true => {
+          if CURRENCY_CODES.contains(&param2) {
+            let set_default = helpers::set_default(param2, msg.author.id.as_u64());
+            match set_default {
+              Ok(response) => Ok(response),
+              Err(err) => Err(err),
             }
+          } else {
+            Err("Currency not supported, Example !currency default USD".to_owned())
           }
-          _ => Err("Invalid input, Example: !currency AUD JPY <amount>".to_owned()),
+        }
+        false => {
+          if CURRENCY_CODES.contains(&param1) && CURRENCY_CODES.contains(&param2) {
+            let base = param1.to_ascii_uppercase();
+            let to = param2.to_ascii_uppercase();
+
+            if base == to {
+              return Err(
+                "Invalid Input, <base> and <to> currencies cannot be the same".to_owned(),
+              );
+            };
+
+            let rate = get_current_exchange(&base, &to).unwrap();
+            let response = format!(
+              "{base} --> {to}: **{rate:.4}**",
+              base = &base,
+              to = &to,
+              rate = rate
+            );
+            Ok(response)
+          } else {
+            Err("Invalid input (currency code), Example: !currency AUD JPY <amount>".to_owned())
+          }
         }
       }
     }
