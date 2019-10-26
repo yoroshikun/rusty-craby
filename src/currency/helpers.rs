@@ -9,7 +9,7 @@ use structs::{PersonalizationCurrencyFile, PersonalizationCurrencyUser};
 pub fn set_default(default: &str, id: &u64) -> Result<String, String> {
   let file =
     read_currency_personalization_file().expect("Could not read currency personalization file");
-  let currentTime = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+  let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
     Ok(n) => n.as_secs(),
     Err(_err) => 0,
   };
@@ -27,12 +27,12 @@ pub fn set_default(default: &str, id: &u64) -> Result<String, String> {
 
       let new_user = PersonalizationCurrencyUser {
         id: *id,
-        default: default.to_owned(),
+        default: default.to_ascii_uppercase(),
       };
       users.push(new_user);
 
       let new_file = PersonalizationCurrencyFile {
-        last_updated: currentTime,
+        last_updated: current_time,
         users: Some(users),
       };
 
@@ -45,11 +45,11 @@ pub fn set_default(default: &str, id: &u64) -> Result<String, String> {
     None => {
       let new_user = PersonalizationCurrencyUser {
         id: *id,
-        default: default.to_owned(),
+        default: default.to_ascii_uppercase(),
       };
 
       let new_file = PersonalizationCurrencyFile {
-        last_updated: currentTime,
+        last_updated: current_time,
         users: Some(vec![new_user]),
       };
 

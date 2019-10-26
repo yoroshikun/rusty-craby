@@ -59,6 +59,10 @@ pub fn handler(msg: &Message) -> Result<String, String> {
       let param2 = content_chunks[2];
       let param3 = content_chunks[3];
 
+      if param1 == param2 {
+        return Err("Invalid Input, <base> and <to> currencies cannot be the same".to_owned());
+      };
+
       match param3.parse::<f64>() {
         Ok(multiplier) => {
           let base = param1.to_ascii_uppercase();
@@ -81,6 +85,10 @@ pub fn handler(msg: &Message) -> Result<String, String> {
     3 => {
       let param1 = content_chunks[1];
       let param2 = content_chunks[2];
+
+      if param1 == param2 {
+        return Err("Invalid Input, <base> and <to> currencies cannot be the same".to_owned());
+      };
 
       // Ensure the from and to are valid
       if CURRENCY_CODES.contains(&param1) && CURRENCY_CODES.contains(&param2) {
@@ -120,6 +128,11 @@ pub fn handler(msg: &Message) -> Result<String, String> {
           let user_default = helpers::get_default(msg.author.id.as_u64());
           match user_default {
             Ok(default) => {
+              if "JPY".to_owned() == default {
+                return Err(
+                  "Invalid Input, <base> and <to> currencies cannot be the same".to_owned(),
+                );
+              };
               let rate = get_current_exchange(&default, &"JPY".to_owned()).unwrap();
               let response = format!(
                 "{multiplier} {base} --> {to}: **{multiplied_rate:.4}**",
@@ -143,6 +156,10 @@ pub fn handler(msg: &Message) -> Result<String, String> {
 
       match user_default {
         Ok(default) => {
+          if "JPY".to_owned() == default {
+            return Err("Invalid Input, <base> and <to> currencies cannot be the same".to_owned());
+          };
+
           let rate = get_current_exchange(&default, &"JPY".to_owned()).unwrap();
           let response = format!(
             "{base} --> {to}: **{rate:.4}**",
