@@ -132,7 +132,6 @@ fn jisho(ctx: &mut Context, msg: &Message) -> CommandResult {
     match response {
         Ok((description, url)) => msg.channel_id.send_message(&ctx.http, |m| {
             m.embed(|mut e| {
-                e.title("\u{1F50D}");
                 e.description(description);
                 e.url(url);
                 e.colour(Colour::from_rgb(0, 250, 154));
