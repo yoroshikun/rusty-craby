@@ -17,7 +17,7 @@ struct JishoMeta {
 #[derive(Deserialize, Debug)]
 struct JishoDataItem {
   slug: String,
-  is_common: bool,
+  is_common: Option<bool>,
   tags: Vec<String>,
   jlpt: Vec<String>,
   japanese: Vec<JishoDataJapanese>,
@@ -28,7 +28,7 @@ struct JishoDataItem {
 #[derive(Deserialize, Debug)]
 struct JishoDataJapanese {
   word: Option<String>,
-  reading: String,
+  reading: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -63,41 +63,45 @@ struct JishoDataSource {
   word: String,
 }
 
-/// Search Jisho for given character or string
-fn get_jisho(word: &str) -> Result<(String, String), reqwest::Error> {
+fn get_jisho(word: &str) -> Result<Jisho, reqwest::Error> {
   // Form and send request
   let request_url = format!("https://jisho.org/api/v1/search/words?keyword={}", word);
   let mut response = reqwest::get(&request_url)?;
 
   // Deserialize result into semi typed struct
   let jisho: Jisho = response.json()?;
+  Ok(jisho)
+}
 
-  let description = match &jisho.data {
+/// Search Jisho for given character or string
+fn format_jisho(word: &str) -> Result<(String, String), String> {
+  let jisho = match get_jisho(word) {
+    Ok(jisho) => jisho,
+    Err(_) => return Err("Failed to get jisho results from api".to_owned()),
+  };
+
+  match &jisho.data {
     Some(data) => {
       if data.len() == 0 {
-        "No Jisho Results".to_owned()
+        Err("No Jisho Results".to_owned())
       } else {
-        format!(
+        let response = format!(
           "**English**: {} \n **Japanese**: {} \n **Reading**: {} \n ---------- \n More information: {}",
           data[0].senses[0].english_definitions[0],
           data[0].japanese[0]
             .word
             .as_ref()
             .unwrap_or(&"No Kana".to_owned()),
-          data[0].japanese[0].reading,
+          data[0].japanese[0].reading.as_ref().unwrap_or(&"No reading".to_owned()),
           format!("https://jisho.org/word/{}", data[0].slug)
-        )
+        );
+        let url = format!("https://jisho.org/search/{}", word);
+
+        Ok((response, url))
       }
     }
-    None => "No Jisho Results".to_owned(),
-  };
-
-  let url = match &jisho.data {
-    Some(data) => format!("https://jisho.org/word/{}", data[0].slug),
-    None => "".to_owned(),
-  };
-
-  Ok((description, url))
+    None => Err("No Jisho Results".to_owned()),
+  }
 }
 
 pub fn handler(msg: &Message) -> Result<(String, String), String> {
@@ -105,13 +109,11 @@ pub fn handler(msg: &Message) -> Result<(String, String), String> {
   let content_chunks: Vec<&str> = msg.content.split(" ").collect();
 
   // Simple check to ensure word is given
-  let response = match content_chunks.len() {
+  match content_chunks.len() {
     2 => {
       let word = content_chunks[1];
-      get_jisho(word).unwrap()
+      format_jisho(word)
     }
     _ => return Err("The input is invalid, Example: !jisho person".to_owned()),
-  };
-
-  Ok(response)
+  }
 }
