@@ -12,6 +12,7 @@ use serenity::prelude::{Context, EventHandler};
 use serenity::utils::Colour;
 
 mod currency;
+mod help;
 mod jisho;
 mod wk_levels;
 mod wkapi;
@@ -19,7 +20,7 @@ mod wkapi;
 group!({
     name: "general",
     options: {},
-    commands: [ping, currency, jisho],
+    commands: [ping, help, currency, jisho],
 });
 
 group!({
@@ -135,6 +136,33 @@ fn jisho(ctx: &mut Context, msg: &Message) -> CommandResult {
                 e.description(description);
                 e.url(url);
                 e.colour(Colour::from_rgb(0, 250, 154));
+
+                e
+            })
+        })?,
+        Err(err) => msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|mut e| {
+                e.description(err);
+                e.colour(Colour::from_rgb(255, 23, 68));
+
+                e
+            })
+        })?,
+    };
+
+    Ok(())
+}
+
+#[command]
+#[aliases("h", "H")]
+fn help(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let response = help::handler(msg);
+
+    match response {
+        Ok(description) => msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|mut e| {
+                e.description(description);
+                e.colour(Colour::from_rgb(120, 144, 156));
 
                 e
             })
