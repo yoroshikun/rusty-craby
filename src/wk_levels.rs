@@ -20,7 +20,7 @@ fn get_level_from_api(api_token: &str) -> Result<(String, String, u8), reqwest::
 pub fn handler(_msg: &Message) -> String {
   // Ensure
   if wkapi::helpers::ensure_equal_ids_levels().is_err() {
-    return "No API Tokens are available, please add one with !wkapi_add".to_owned();
+    return "No API Tokens are available, please add one with !add_wkapi".to_owned();
   }
 
   // Read latest

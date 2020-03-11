@@ -53,12 +53,13 @@ pub fn add_api_token(msg: &Message) -> Result<String, serde_yaml::Error> {
       };
 
       // Find and remove the current value if value already exists
-      let removed = new_user_tokens
+      // TODO: Remove user
+      let removed_token = new_user_tokens
         .iter()
         .position(|token| *token.token == api_token.to_owned())
         .map(|e| new_user_tokens.remove(e))
         .is_some();
-      println!("Removed existing: {}", removed);
+      println!("Removed existing Token: {}", removed_token);
 
       // Add to end of users (safe to unwrap user since we checked if err above)
       new_user_tokens.push(ApiTokens {
