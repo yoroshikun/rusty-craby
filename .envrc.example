@@ -2,3 +2,4 @@ export OPENSSL_INCLUDE_DIR=/usr/local/opt/openssl/include
 export OPENSSL_LIB_DIR=/usr/local/opt/openssl/lib
 export DISCORD_TOKEN=
 export TEST_DISCORD_TOKEN=
+export CURR_CONV_TOKEN=
