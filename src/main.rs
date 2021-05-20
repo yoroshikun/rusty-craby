@@ -59,6 +59,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // TUBBY
     command_config.add_command("tubby", true);
     command_config.add_command("t", false);
+    command_config.add_command("tl", false);
+    command_config.add_command("tr", false);
+    command_config.add_command("tc", false);
     // WAIFU
     command_config.add_command("waifu", true);
     command_config.add_command("w", false);
@@ -289,6 +292,72 @@ async fn handle_event(
                 }) => {
                     let user = msg.author.clone();
                     let response = tubby::handler(arguments, user);
+
+                    let emebed = match response {
+                        Ok(response) => EmbedBuilder::new()
+                            .title("Tubby Manager")?
+                            .description(response)?
+                            .color(0xc4_46_e0)?
+                            .build(),
+                        Err(err) => EmbedBuilder::new()
+                            .title("Tubby Manager")?
+                            .description(err)?
+                            .color(0xfd_35_35)?
+                            .build(),
+                    };
+
+                    http.create_message(msg.channel_id)
+                        .embed(emebed.unwrap())?
+                        .await?;
+                }
+                Some(Command { name: "tr", .. }) => {
+                    let user = msg.author.clone();
+                    let response = tubby::create_request(user);
+
+                    let emebed = match response {
+                        Ok(response) => EmbedBuilder::new()
+                            .title("Tubby Manager")?
+                            .description(response)?
+                            .color(0xc4_46_e0)?
+                            .build(),
+                        Err(err) => EmbedBuilder::new()
+                            .title("Tubby Manager")?
+                            .description(err)?
+                            .color(0xfd_35_35)?
+                            .build(),
+                    };
+
+                    http.create_message(msg.channel_id)
+                        .embed(emebed.unwrap())?
+                        .await?;
+                }
+                Some(Command {
+                    name: "tc",
+                    mut arguments,
+                    ..
+                }) => {
+                    let user = arguments.next().unwrap();
+                    let response = tubby::complete_request(user);
+
+                    let emebed = match response {
+                        Ok(response) => EmbedBuilder::new()
+                            .title("Tubby Manager")?
+                            .description(response)?
+                            .color(0xc4_46_e0)?
+                            .build(),
+                        Err(err) => EmbedBuilder::new()
+                            .title("Tubby Manager")?
+                            .description(err)?
+                            .color(0xfd_35_35)?
+                            .build(),
+                    };
+
+                    http.create_message(msg.channel_id)
+                        .embed(emebed.unwrap())?
+                        .await?;
+                }
+                Some(Command { name: "tl", .. }) => {
+                    let response = tubby::get_requests();
 
                     let emebed = match response {
                         Ok(response) => EmbedBuilder::new()

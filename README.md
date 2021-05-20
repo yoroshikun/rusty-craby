@@ -31,14 +31,6 @@ For testing your build locally you can use a test bot.
 
 ## Cross Compiling
 
-This project uses [Cross](https://github.com/rust-embedded/cross) to cross compile to raspberry pi. First install it by running
+TBA
 
-```
-cargo install cross
-```
-
-Once installed you can call the helper build scrip to produce a binary compatable for rpi3/4
-
-```
-./scripts/cross-build.sh
-```
+For now the programm must be compiled on device

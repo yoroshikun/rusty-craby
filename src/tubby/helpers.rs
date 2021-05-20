@@ -53,12 +53,26 @@ fn read_config() -> Result<UserTubbyFile, serde_json::Error> {
 pub fn get_requests() -> Result<Vec<String>, String> {
     let config = read_config().expect("Could not read tubby file");
 
+    let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => n.as_secs(),
+        Err(_err) => 0,
+    };
+
     let response = match config.users {
         Some(users) => {
             if users.is_empty() {
                 Err("No requests available, use '!tubby create' to request one!".to_owned())
             } else {
-                Ok(users.iter().map(|user| user.name.to_owned()).collect())
+                Ok(users
+                    .iter()
+                    .map(|user| {
+                        format!(
+                            "{} -> Remaining {:.2}h",
+                            user.name.to_owned(),
+                            (user.expires - current_time) / 60 / 60 // Fix this to round properly
+                        )
+                    })
+                    .collect())
             }
         }
         None => Err("No requests available, use '!tubby create' to request one!".to_owned()),
@@ -166,6 +180,19 @@ pub fn complete_request(completed_user: &str) -> Result<String, String> {
         }
     }
 }
+
+// TODO: Support pruning
+// fn prune_requests(current: UserTubbyFile) -> Result<UserTubbyFile, ()> {
+//     let pruned_users = current.users.filter(
+//         user => user.timeout >= new Date().getTime()
+//       );
+//       if (prunedUsers.length !== current.users.length) {
+//         const newConfig = {...current, users: prunedUsers} as TubbyFile;
+//         await saveConfig(newConfig);
+//         return newConfig;
+//       }
+//       return current;
+// }
 
 // Experimental expire
 // pub fn expire_requests() -> Result<(), ()> {
