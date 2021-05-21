@@ -451,7 +451,7 @@ async fn handle_event(
                 }
                 // Ignore all other commands.
                 Some(_) => {}
-                None => println!("Message didn't match a prefix and command"),
+                None => {}
             }
         }
         Event::ShardConnected(_) => {
