@@ -393,7 +393,7 @@ async fn handle_event(
                     let emebed = match response {
                         Ok(description) => EmbedBuilder::new()
                             .description(description)?
-                            .image(ImageSource::attachment("avatar.png")?)
+                            .image(ImageSource::attachment("~/auto-waifu/avatar.png")?)
                             .color(0xc4_46_e0)?
                             .build(),
                         Err(err) => EmbedBuilder::new()
@@ -412,7 +412,7 @@ async fn handle_event(
                     let emebed = match response {
                         Ok(description) => EmbedBuilder::new()
                             .description(description)?
-                            .image(ImageSource::attachment("avatar.png")?)
+                            .image(ImageSource::attachment("~/auto-waifu/avatar.png")?)
                             .color(0xc4_46_e0)?
                             .build(),
                         Err(err) => EmbedBuilder::new()
@@ -431,7 +431,7 @@ async fn handle_event(
                     let emebed = match response {
                         Ok(description) => EmbedBuilder::new()
                             .description(description)?
-                            .image(ImageSource::attachment("avatar.png")?)
+                            .image(ImageSource::attachment("~/auto-waifu/avatar.png")?)
                             .color(0xc4_46_e0)?
                             .build(),
                         Err(err) => EmbedBuilder::new()

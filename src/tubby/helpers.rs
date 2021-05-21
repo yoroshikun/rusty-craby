@@ -71,7 +71,7 @@ fn make_user_list(users: Option<Vec<UserTubbyUser>>) -> String {
                     .iter()
                     .map(|user| {
                         format!(
-                            "{} -> Remaining {:.2}h",
+                            "{} -> Remaining {:.2}h \n",
                             user.name.to_owned(),
                             ((user.expires - current_time) as f64) / 60f64 / 60f64
                         )

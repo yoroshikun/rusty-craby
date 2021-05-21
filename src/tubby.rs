@@ -15,7 +15,7 @@ pub fn handler(arguments: Arguments, user: User) -> Result<String, String> {
 
     match arguments_vec[0].to_ascii_lowercase().as_str() {
         "request" => {
-            let offset = match arguments_vec.len() >= 2 {
+            let offset = match arguments_vec.len() == 2 {
                 true => match arguments_vec[1].parse::<u8>() {
                     Ok(offset) => Some(offset),
                     Err(_) => None,
@@ -25,7 +25,7 @@ pub fn handler(arguments: Arguments, user: User) -> Result<String, String> {
             return helpers::create_request(user, offset);
         }
         "create" => {
-            let offset = match arguments_vec.len() >= 2 {
+            let offset = match arguments_vec.len() == 2 {
                 true => match arguments_vec[1].parse::<u8>() {
                     Ok(offset) => Some(offset),
                     Err(_) => None,
@@ -35,7 +35,7 @@ pub fn handler(arguments: Arguments, user: User) -> Result<String, String> {
             return helpers::create_request(user, offset);
         }
         "complete" => {
-            let complete_user = match arguments_vec.len() >= 2 {
+            let complete_user = match arguments_vec.len() == 2 {
                 true => Some(arguments_vec[1]),
                 false => None,
             };
