@@ -310,9 +310,20 @@ async fn handle_event(
                         .embed(emebed.unwrap())?
                         .await?;
                 }
-                Some(Command { name: "tr", .. }) => {
+                Some(Command {
+                    name: "tr",
+                    mut arguments,
+                    ..
+                }) => {
                     let user = msg.author.clone();
-                    let response = tubby::create_request(user);
+                    let offset = match arguments.next() {
+                        Some(arg) => match arg.parse::<u8>() {
+                            Ok(offset) => Some(offset),
+                            Err(_) => None,
+                        },
+                        None => None,
+                    };
+                    let response = tubby::create_request(user, offset);
 
                     let emebed = match response {
                         Ok(response) => EmbedBuilder::new()

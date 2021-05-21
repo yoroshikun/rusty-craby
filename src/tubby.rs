@@ -15,10 +15,18 @@ pub fn handler(arguments: Arguments, user: User) -> Result<String, String> {
 
     match arguments_vec[0].to_ascii_lowercase().as_str() {
         "request" => {
-            return helpers::create_request(user);
+            let offset = match arguments_vec[1].parse::<u8>() {
+                Ok(offset) => Some(offset),
+                Err(_) => None,
+            };
+            return helpers::create_request(user, offset);
         }
         "create" => {
-            return helpers::create_request(user);
+            let offset = match arguments_vec[1].parse::<u8>() {
+                Ok(offset) => Some(offset),
+                Err(_) => None,
+            };
+            return helpers::create_request(user, offset);
         }
         "complete" => {
             let complete_user = arguments_vec[1];
@@ -43,8 +51,8 @@ pub fn handler(arguments: Arguments, user: User) -> Result<String, String> {
     }
 }
 
-pub fn create_request(user: User) -> Result<String, String> {
-    return helpers::create_request(user);
+pub fn create_request(user: User, offset: Option<u8>) -> Result<String, String> {
+    return helpers::create_request(user, offset);
 }
 
 pub fn complete_request(user: &str) -> Result<String, String> {

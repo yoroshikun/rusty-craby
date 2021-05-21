@@ -50,8 +50,15 @@ fn read_config() -> Result<UserTubbyFile, serde_json::Error> {
     Ok(config_file)
 }
 
+fn save_config(config: UserTubbyFile) -> Result<(), serde_json::Error> {
+    let buffer = fs::File::create(CONFIG_PATH).expect("Failed to create config file buffer");
+    serde_json::to_writer(buffer, &config)?;
+    Ok(())
+}
+
 pub fn get_requests() -> Result<Vec<String>, String> {
-    let config = read_config().expect("Could not read tubby file");
+    let file = read_config().expect("Could not read tubby file");
+    let config = prune_requests(file).expect("Failed to prune requests");
 
     let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
@@ -69,7 +76,7 @@ pub fn get_requests() -> Result<Vec<String>, String> {
                         format!(
                             "{} -> Remaining {:.2}h",
                             user.name.to_owned(),
-                            (user.expires - current_time) / 60 / 60 // Fix this to round properly
+                            ((user.expires - current_time) as f64) / 60f64 / 60f64
                         )
                     })
                     .collect())
@@ -81,15 +88,21 @@ pub fn get_requests() -> Result<Vec<String>, String> {
     response
 }
 
-pub fn create_request(current_user: User) -> Result<String, String> {
+pub fn create_request(current_user: User, offset: Option<u8>) -> Result<String, String> {
     let file = read_config().expect("Could not read tubby file");
+    let config = prune_requests(file).expect("Failed to prune requests");
 
     let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_err) => 0,
     };
 
-    match file.users {
+    let offset = match offset {
+        Some(offset) => offset,
+        None => 12,
+    };
+
+    match config.users {
         Some(mut users) => {
             let index = users.iter().position(|user| {
                 &user.name.to_ascii_lowercase() == &current_user.name.to_ascii_lowercase()
@@ -102,7 +115,7 @@ pub fn create_request(current_user: User) -> Result<String, String> {
                 None => {
                     let new_user = UserTubbyUser {
                         name: current_user.name,
-                        expires: current_time + (60 * 60 * 12),
+                        expires: current_time + (60 * 60 * offset as u64),
                     };
 
                     users.push(new_user);
@@ -112,8 +125,7 @@ pub fn create_request(current_user: User) -> Result<String, String> {
                         users: Some(users),
                     };
 
-                    let buffer = fs::File::create(CONFIG_PATH).expect("Failed to create file");
-                    serde_json::to_writer(buffer, &new_file).expect("Failed to write config");
+                    save_config(new_file).expect("Failed to save config");
                     return Ok("Successfuly added request!, check with !tubby".to_owned());
                 }
             };
@@ -132,8 +144,7 @@ pub fn create_request(current_user: User) -> Result<String, String> {
                 users: Some(users),
             };
 
-            let buffer = fs::File::create(CONFIG_PATH).expect("Failed to create file");
-            serde_json::to_writer(buffer, &new_file).expect("Failed to write config");
+            save_config(new_file).expect("Failed to save config");
             return Ok("Successfuly added request!, check with !tubby".to_owned());
         }
     }
@@ -141,13 +152,14 @@ pub fn create_request(current_user: User) -> Result<String, String> {
 
 pub fn complete_request(completed_user: &str) -> Result<String, String> {
     let file = read_config().expect("Could not read tubby file");
+    let config = prune_requests(file).expect("Failed to prune requests");
 
     let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_err) => 0,
     };
 
-    match file.users {
+    match config.users {
         Some(mut users) => {
             let index = users.iter().position(|user| {
                 &user.name.to_ascii_lowercase() == &completed_user.to_ascii_lowercase()
@@ -162,13 +174,13 @@ pub fn complete_request(completed_user: &str) -> Result<String, String> {
                         users: Some(users),
                     };
 
-                    let buffer = fs::File::create(CONFIG_PATH).expect("Failed to create file");
+                    save_config(new_file).expect("Failed to save config");
 
-                    serde_json::to_writer(buffer, &new_file).expect("Failed to write config");
-
-                    return Ok(
-                        format!("Successfuly completed {}s request", completed_user).to_owned()
-                    );
+                    return Ok(format!(
+                        "Successfuly completed {}s request",
+                        completed_user.to_ascii_lowercase()
+                    )
+                    .to_owned());
                 }
                 None => {
                     return Err("The user does not exist to complete".to_owned());
@@ -181,63 +193,26 @@ pub fn complete_request(completed_user: &str) -> Result<String, String> {
     }
 }
 
-// TODO: Support pruning
-// fn prune_requests(current: UserTubbyFile) -> Result<UserTubbyFile, ()> {
-//     let pruned_users = current.users.filter(
-//         user => user.timeout >= new Date().getTime()
-//       );
-//       if (prunedUsers.length !== current.users.length) {
-//         const newConfig = {...current, users: prunedUsers} as TubbyFile;
-//         await saveConfig(newConfig);
-//         return newConfig;
-//       }
-//       return current;
-// }
+fn prune_requests(current: UserTubbyFile) -> Result<UserTubbyFile, ()> {
+    let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => n.as_secs(),
+        Err(_err) => 0,
+    };
 
-// Experimental expire
-// pub fn expire_requests() -> Result<(), ()> {
-//     let file = read_config().expect("Could not read tubby file");
+    let pruned_users = match current.users {
+        Some(users) => users
+            .into_iter()
+            .filter(|user| user.expires >= current_time)
+            .collect(),
+        None => vec![],
+    };
 
-//     let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-//         Ok(n) => n.as_secs(),
-//         Err(_err) => 0,
-//     };
+    let new_config = UserTubbyFile {
+        last_updated: current_time,
+        users: Some(pruned_users),
+    };
 
-//     match file.users {
-//         Some(mut users) => {
-//             let expired_users = users
-//                 .iter()
-//                 .clone()
-//                 .filter(|user| &user.expires <= &current_time)
-//                 .collect::<Vec<&UserTubbyUser>>();
+    save_config(new_config.clone()).expect("Failed to save config");
 
-//             if expired_users.is_empty() {
-//                 return Ok(());
-//             }
-
-//             for expired_user in &expired_users {
-//                 let index = users.iter().position(|user| {
-//                     &user.name.to_ascii_lowercase() == &expired_user.name.to_ascii_lowercase()
-//                 });
-
-//                 if index.is_some() {
-//                     new_users.remove(index.unwrap());
-//                 }
-//             }
-
-//             let new_file = UserTubbyFile {
-//                 last_updated: current_time,
-//                 users: Some(users),
-//             };
-
-//             let buffer = fs::File::create(CONFIG_PATH).expect("Failed to create file");
-
-//             serde_json::to_writer(buffer, &new_file).expect("Failed to write config");
-
-//             return Ok(());
-//         }
-//         None => {
-//             return Ok(());
-//         }
-//     }
-// }
+    Ok(new_config)
+}
