@@ -56,6 +56,34 @@ fn save_config(config: UserTubbyFile) -> Result<(), serde_json::Error> {
     Ok(())
 }
 
+fn make_user_list(users: Option<Vec<UserTubbyUser>>) -> String {
+    let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => n.as_secs(),
+        Err(_err) => 0,
+    };
+
+    match users {
+        Some(users) => {
+            if users.is_empty() {
+                return "No requests available, use '!tubby request' to request one!".to_owned();
+            } else {
+                return users
+                    .iter()
+                    .map(|user| {
+                        format!(
+                            "{} -> Remaining {:.2}h",
+                            user.name.to_owned(),
+                            ((user.expires - current_time) as f64) / 60f64 / 60f64
+                        )
+                    })
+                    .collect();
+            }
+        }
+        None => "No requests available, use '!tubby request' to request one!".to_owned(),
+    }
+}
+
+// TODO use above function to avoid redundancy
 pub fn get_requests() -> Result<Vec<String>, String> {
     let file = read_config().expect("Could not read tubby file");
     let config = prune_requests(file).expect("Failed to prune requests");
@@ -64,11 +92,10 @@ pub fn get_requests() -> Result<Vec<String>, String> {
         Ok(n) => n.as_secs(),
         Err(_err) => 0,
     };
-
     let response = match config.users {
         Some(users) => {
             if users.is_empty() {
-                Err("No requests available, use '!tubby create' to request one!".to_owned())
+                Err("No requests available, use '!tubby request' to request one!".to_owned())
             } else {
                 Ok(users
                     .iter()
@@ -82,7 +109,7 @@ pub fn get_requests() -> Result<Vec<String>, String> {
                     .collect())
             }
         }
-        None => Err("No requests available, use '!tubby create' to request one!".to_owned()),
+        None => Err("No requests available, use '!tubby request' to request one!".to_owned()),
     };
 
     response
@@ -125,8 +152,11 @@ pub fn create_request(current_user: User, offset: Option<u8>) -> Result<String, 
                         users: Some(users),
                     };
 
-                    save_config(new_file).expect("Failed to save config");
-                    return Ok("Successfuly added request!, check with !tubby".to_owned());
+                    save_config(new_file.clone()).expect("Failed to save config");
+                    return Ok(format!(
+                        "Successfuly added request! \n **Requests** \n {}",
+                        make_user_list(new_file.users)
+                    ));
                 }
             };
         }
@@ -144,8 +174,11 @@ pub fn create_request(current_user: User, offset: Option<u8>) -> Result<String, 
                 users: Some(users),
             };
 
-            save_config(new_file).expect("Failed to save config");
-            return Ok("Successfuly added request!, check with !tubby".to_owned());
+            save_config(new_file.clone()).expect("Failed to save config");
+            return Ok(format!(
+                "Successfuly added request! \n **Requests** \n {}",
+                make_user_list(new_file.users)
+            ));
         }
     }
 }
@@ -159,7 +192,7 @@ pub fn complete_request(completed_user: &str) -> Result<String, String> {
         Err(_err) => 0,
     };
 
-    match config.users {
+    match config.users.clone() {
         Some(mut users) => {
             let index = users.iter().position(|user| {
                 &user.name.to_ascii_lowercase() == &completed_user.to_ascii_lowercase()
@@ -174,16 +207,18 @@ pub fn complete_request(completed_user: &str) -> Result<String, String> {
                         users: Some(users),
                     };
 
-                    save_config(new_file).expect("Failed to save config");
-
+                    save_config(new_file.clone()).expect("Failed to save config");
                     return Ok(format!(
-                        "Successfuly completed {}s request",
-                        completed_user.to_ascii_lowercase()
-                    )
-                    .to_owned());
+                        "Successfuly completed {}s request! \n **Requests** \n {}",
+                        completed_user.to_ascii_lowercase(),
+                        make_user_list(new_file.users)
+                    ));
                 }
                 None => {
-                    return Err("The user does not exist to complete".to_owned());
+                    return Err(format!(
+                        "The user does not exist to complete \n **Requests** \n {}",
+                        make_user_list(config.users)
+                    ))
                 }
             };
         }
