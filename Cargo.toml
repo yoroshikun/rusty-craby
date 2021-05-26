@@ -17,4 +17,3 @@ twilight-model = "0.3"
 twilight-command-parser = "0.3"
 twilight-embed-builder = "0.3"
 twilight-mention = "0.3"
-openssl = { version = "0.10", features = ["vendored"] }
