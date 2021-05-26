@@ -115,7 +115,7 @@ pub fn get_requests() -> Result<Vec<String>, String> {
     response
 }
 
-pub fn create_request(current_user: User, offset: Option<u8>) -> Result<String, String> {
+pub fn create_request(current_user: &User, offset: Option<u8>) -> Result<String, String> {
     let file = read_config().expect("Could not read tubby file");
     let config = prune_requests(file).expect("Failed to prune requests");
 
@@ -141,7 +141,7 @@ pub fn create_request(current_user: User, offset: Option<u8>) -> Result<String, 
                 }
                 None => {
                     let new_user = UserTubbyUser {
-                        name: current_user.name,
+                        name: current_user.name.clone(),
                         expires: current_time + (60 * 60 * offset as u64),
                     };
 
@@ -163,7 +163,7 @@ pub fn create_request(current_user: User, offset: Option<u8>) -> Result<String, 
         None => {
             let mut users = vec![];
             let new_user = UserTubbyUser {
-                name: current_user.name,
+                name: current_user.name.clone(),
                 expires: current_time + (60 * 60 * 12),
             };
 
