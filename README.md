@@ -8,14 +8,14 @@ Feel free to contibute to the project if you can improve my rust code, as this p
 
 ## Commands
 
-| Command | Description                                                                    |
-| ------- | ------------------------------------------------------------------------------ |
-| Jisho   | Fetch a word using the jisho dictonary api                                     |
-| Tubby   | A helper for managing tubby requests for Genshin Impact                        |
-| XE      | Quick currency exchange rates                                                  |
-| Waifu   | **Broken** Generate a waifu using the [Waifulabs](https://waifulabs.com/) site |
-| Ping    | Simple ping command! You know the drill                                        |
-| Help    | Help command that explains the rest                                            |
+| Command | Description                                                         |
+| ------- | ------------------------------------------------------------------- |
+| Jisho   | Fetch a word using the jisho dictonary api                          |
+| Tubby   | A helper for managing tubby requests for Genshin Impact             |
+| XE      | Quick currency exchange rates                                       |
+| Waifu   | Generate a waifu using the [Waifulabs](https://waifulabs.com/) site |
+| Ping    | Simple ping command! You know the drill                             |
+| Help    | Help command that explains the rest                                 |
 
 ## Setup
 

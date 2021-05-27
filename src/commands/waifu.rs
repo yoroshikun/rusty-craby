@@ -1,15 +1,15 @@
 use std::process;
 use twilight_command_parser::{Command, CommandParserConfig};
+use twilight_embed_builder::{EmbedBuilder, ImageSource};
 use twilight_http::Client as HttpClient;
-use twilight_mention::Mention;
 use twilight_model::gateway::payload::MessageCreate;
 
-fn generate_waifu() -> Result<Vec<&'static str>, String> {
+fn generate_waifu() -> Result<String, String> {
     let mut child = process::Command::new("auto-waifu")
         .spawn()
         .expect("auto-waifu command failed to start");
     let _result = child.wait().expect("Failed to wait for command to finish");
-    Ok(vec!["avatar.png"])
+    Ok("Here is your waifu".to_owned())
 }
 
 /// Handles the logic of the command
@@ -17,13 +17,22 @@ pub async fn handler(
     msg: &MessageCreate,
     http: &HttpClient,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    generate_waifu().expect("Failed to generate Waifu");
+    let response = generate_waifu();
+
+    let embed = match response {
+        Ok(description) => EmbedBuilder::new()
+            .description(description)?
+            .image(ImageSource::attachment("avatar.png")?)
+            .color(0xc4_46_e0)?
+            .build(),
+        Err(err) => EmbedBuilder::new()
+            .description(err)?
+            .color(0xfd_35_35)?
+            .build(),
+    };
 
     http.create_message(msg.channel_id)
-        .content(format!(
-            "{}: Waifu command does not work yet sorry!",
-            msg.author.mention()
-        ))?
+        .embed(embed.unwrap())?
         .await?;
     Ok(())
 }
