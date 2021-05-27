@@ -10,7 +10,7 @@ Feel free to contibute to the project if you can improve my rust code, as this p
 
 | Command | Description                                                         |
 | ------- | ------------------------------------------------------------------- |
-| Jisho   | Fetch a word using the jisho dictonary api                          |
+| Jisho   | Fetch a word using the jisho dictionary api                         |
 | Tubby   | A helper for managing tubby requests for Genshin Impact             |
 | XE      | Quick currency exchange rates                                       |
 | Waifu   | Generate a waifu using the [Waifulabs](https://waifulabs.com/) site |
