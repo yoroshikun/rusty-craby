@@ -39,6 +39,10 @@ For testing your builds locally you can use a test bot.
 
 ## Cross Compiling
 
-TBA
+Cross compiling allows you to build on your own system before transfering to a different one, In this case cross-compiling for arm is required for raspberry pi support
 
-For now the programm must be compiled on device eg. ARM
+```bash
+# Can be done with cross
+cargo install cross
+
+```
